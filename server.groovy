@@ -1,7 +1,7 @@
 import groovy.swing.SwingBuilder
 import java.awt.BorderLayout as BL
 import javax.swing.WindowConstants as WC
-import java.awt.Color
+import java.awt.*
 
 def toggle() {
   if (stopped()) {
@@ -15,14 +15,30 @@ def stopped() {
   status.text == 'stopped'
 }
 
+def queue(action) {
+  EventQueue.invokeLater({action()})
+}
+
+def runScript(script,success,failure) {
+  Thread.start {
+     try {
+       println script.execute().text
+       queue(success)
+     } catch (e) {
+       println e.message
+       queue(failure)
+     }
+  }
+}
+
 def start() {
   showStarting()
-  showStarted()
+  runScript("./go.sh",{showStarted()},{showStopped()})
 }
 
 def stop() {
   showStopping()
-  showStopped()
+  runScript("./stop.sh",{showStopped()},{showStarted()})
 }
 
 def showStarted() {
