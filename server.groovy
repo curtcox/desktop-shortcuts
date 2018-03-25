@@ -2,10 +2,11 @@ import groovy.swing.SwingBuilder
 import java.awt.BorderLayout as BL
 import javax.swing.WindowConstants as WC
 import java.awt.*
+import java.awt.event.*
 
 def toggle() {
   if (stopped()) {
-    start()
+    go()
   } else {
     stop()
   }
@@ -19,9 +20,10 @@ def queue(action) {
   EventQueue.invokeLater({action()})
 }
 
-def runScript(script,success,failure) {
+def run(command,success,failure) {
   Thread.start {
      try {
+       def script = "./scripts/${command}.sh"
        println script.execute().text
        queue(success)
      } catch (e) {
@@ -31,14 +33,18 @@ def runScript(script,success,failure) {
   }
 }
 
-def start() {
+def blind(script) {
+  run(script,{},{})
+}
+
+def go() {
   showStarting()
-  runScript("./go.sh",{showStarted()},{showStopped()})
+  run('go',{showStarted()},{showStopped()})
 }
 
 def stop() {
   showStopping()
-  runScript("./stop.sh",{showStopped()},{showStarted()})
+  run('stop',{showStopped()},{showStarted()})
 }
 
 def showStarted() {
@@ -65,6 +71,25 @@ def showStopping() {
   button.enabled = false
 }
 
+def keypress(keyChar) {
+  switch (keyChar) {
+    case 'i': blind('i'); return
+    case 't': blind('t'); return
+  }
+  println "No binding for $keyChar"
+}
+
+def installHotkeys() {
+  KeyboardFocusManager.currentKeyboardFocusManager
+      .addKeyEventDispatcher( [
+      dispatchKeyEvent: { e ->
+        if (e.id == KeyEvent.KEY_TYPED) {
+          keypress(e.keyChar)
+        }
+        return false
+      } ] as KeyEventDispatcher );
+}
+
 new SwingBuilder().edt {
   frame(title: '', size: [100, 100], show: true, defaultCloseOperation: WC.EXIT_ON_CLOSE) {
     borderLayout()
@@ -72,4 +97,5 @@ new SwingBuilder().edt {
     button = button(text:'', actionPerformed: {toggle()}, constraints:BL.CENTER)
     showStopped()
   }
+  installHotkeys()
 }
