@@ -23,14 +23,21 @@ def queue(action) {
 def run(command,success,failure) {
   Thread.start {
      try {
-       def script = "./scripts/${command}.sh"
-       println script.execute().text
+       println scriptFor(command).execute().text
        queue(success)
      } catch (e) {
        println e.message
        queue(failure)
      }
   }
+}
+
+def scriptExistsFor(key) {
+   new File(scriptFor(key)).exists()
+}
+
+def scriptFor(name) {
+   "./scripts/${name}.sh"
 }
 
 def blind(script) {
@@ -72,11 +79,11 @@ def showStopping() {
 }
 
 def keypress(keyChar) {
-  switch (keyChar) {
-    case 'i': blind('i'); return
-    case 't': blind('t'); return
+  if (scriptExistsFor(keyChar)) {
+     blind(keyChar)
+  } else {
+    println "No binding for $keyChar"
   }
-  println "No binding for $keyChar"
 }
 
 def installHotkeys() {
