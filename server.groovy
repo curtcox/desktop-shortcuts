@@ -2,7 +2,9 @@ import groovy.swing.SwingBuilder
 import java.awt.BorderLayout as BL
 import javax.swing.WindowConstants as WC
 import java.awt.*
+import java.awt.image.*
 import java.awt.event.*
+import com.apple.eawt.Application
 
 def toggle() {
   if (stopped()) {
@@ -17,7 +19,10 @@ def stopped() {
 }
 
 def queue(action) {
-  EventQueue.invokeLater({action()})
+  EventQueue.invokeLater({
+    action()
+    updateTaskbar()
+  })
 }
 
 def run(command,success,failure) {
@@ -97,12 +102,25 @@ def installHotkeys() {
       } ] as KeyEventDispatcher );
 }
 
+def updateTaskbar() {
+   def image = screenShot()
+   frame.iconImage = image
+   Application.application.dockIconImage = image
+}
+
+def screenShot() {
+   def image = new BufferedImage(button.width,button.height,BufferedImage.TYPE_INT_RGB)
+   button.paint( image.getGraphics() )
+   image
+ }
+
 new SwingBuilder().edt {
-  frame(title: '', size: [100, 100], show: true, defaultCloseOperation: WC.EXIT_ON_CLOSE) {
+  frame = frame(title: '', size: [100, 100], show: true, defaultCloseOperation: WC.EXIT_ON_CLOSE) {
     borderLayout()
     status = label(text: '', constraints: BL.SOUTH)
     button = button(text:'', actionPerformed: {toggle()}, constraints:BL.CENTER)
     showStopped()
   }
   installHotkeys()
+  updateTaskbar()
 }
