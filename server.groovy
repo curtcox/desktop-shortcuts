@@ -99,7 +99,7 @@ def installHotkeys() {
           keypress(e.keyChar)
         }
         return false
-      } ] as KeyEventDispatcher );
+      } ] as KeyEventDispatcher )
 }
 
 def updateTaskbar() {
@@ -121,6 +121,7 @@ new SwingBuilder().edt {
     button = button(text:'', actionPerformed: {toggle()}, constraints:BL.CENTER)
     showStopped()
   }
+  frame.resizable = false
   installHotkeys()
   updateTaskbar()
 }
